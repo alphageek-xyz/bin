@@ -19,6 +19,7 @@ NPS_VERSION=1.11.33.2
 NGINX_VERSION=1.10.1
 TEMP_PATH=/var/local/lib/nginx
 BUILD_DIR=/tmp/ngx
+install=false
 declare -a FLAGS
 
 while getopts :in:p:t:b:d:f:h opt; do
@@ -86,10 +87,10 @@ insnginx() {
  cd $BUILD_DIR/nginx-${NGINX_VERSION} && make install
 }
 
-
+set -e
+apt-get install libpcre3-dev
 mkdir -p $TEMP_PATH
 mkdir -p $BUILD_DIR
 test -d $BUILD_DIR/ngx_pagespeed-release-${NPS_VERSION}-beta/psol || mkpagespeed
 mknginx
 $install && insnginx || exit 0
-
