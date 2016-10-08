@@ -1,0 +1,16 @@
+#!/bin/bash
+
+test $# -ge 2 || {
+    echo "Usage: ${BASH_SOURCE##*/} ENV CMD [ARG]..."
+    exit 1
+}
+
+set -a
+VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+VIRTUALENVWRAPPER_WORKON_CD=0
+DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-agcs.settings.prod}"
+set +a
+
+. /usr/local/bin/virtualenvwrapper.sh
+
+workon "$1" && exec ${@:2}
