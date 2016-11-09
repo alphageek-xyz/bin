@@ -7,7 +7,6 @@ from smtplib import SMTP_SSL as SMTP
 from email.utils import formatdate
 from email.message import EmailMessage
 from email.headerregistry import Address
-from email.utils import make_msgid
 
 
 def get_host_name():
@@ -20,8 +19,8 @@ def get_host_name():
 
 class Mailer(object):
     def __init__(self,
-        server, user, passwd, to, content,
-        html=None, sender=None, subject=None
+        server, user, passwd, to, sender,
+        content, subject, html=None
     ):
         self.server = server
         self.user = user
@@ -30,29 +29,28 @@ class Mailer(object):
         self.html = html
         self.to = to
         self.sender = sender or self.user
-        self.subject = subject or (
-            'System message from %s' % get_host_name()
-        )
+        self.subject = subject
+
 
     def send(self):
         try:
             msg = EmailMessage()
+            msg['Date'] = formatdate()
             msg['Subject'] = self.subject
             msg['From'] = Address('Alpha Geeks', *self.sender.split('@'))
             msg['To'] = tuple(
-                Address('System Admin', *t.split('@'))
-                    for t in self.to
+                Address('System Admin', *t.split('@')) for t in self.to
             )
-            msg['Date'] = formatdate()
             msg.set_content(self.content)
             if self.html is not None:
-                msg.add_alternative("""
-                <html><head>
-                <title>{title}</title>
-                </head><body>
-                <pre>{body}</pre>
+                msg.add_alternative("""<html>
+                <head><title>{title}</title>
+                </head><body><pre>{body}</pre>
                 </body></html>
-                """.format(title=self.subject, body=self.html), subtype='html')
+                """.format(
+                    title=self.subject,
+                    body=self.html
+                ), subtype='html')
             with SMTP(self.server) as con:
                 con.login(self.user, self.passwd)
                 con.send_message(msg)
@@ -61,21 +59,6 @@ class Mailer(object):
 
 
 if __name__ == '__main__':
-    defaults = {
-        'server'  : 'smtp.zoho.com',
-        'user'    : 'no-reply@alphageek.xyz',
-        'to'      : 'root@alphageek.xyz',
-        'subject' : 'System message from %s' % get_host_name(),
-    }
-
-    import_args = []
-
-    for i in ['server', 'user', 'password', 'to']:
-        v = 'MAILER_' + i.upper()
-        os.environ.get(v) and import_args.extend(
-            ['--' + i, os.environ[v]]
-        )
-
     parser = argparse.ArgumentParser(
         description='Send a simple email',
     )
@@ -123,17 +106,7 @@ if __name__ == '__main__':
         nargs='+',
     )
 
-    if ('-n' or '--dry-run') in sys.argv:
-        test_args = []
-        for k,v in defaults.items():
-            test_args.append('--%s' % k)
-            test_args.append('%s' % v)
-        import_args.extend(test_args + sys.argv[1:])
-        import_args.append('This is a test message')
-    else:
-        import_args.extend(sys.argv[1:])
-
-    args = parser.parse_args(import_args)
+    args = parser.parse_args()
 
     try:
         mail = Mailer(
@@ -146,7 +119,10 @@ if __name__ == '__main__':
             sender=args.user,
             subject=args.subject or None
         )
-        mail.send()
+        if args.dry_run:
+            print('DRY RUN: (Sending skipped)')
+        else:
+            mail.send()
     except Exception as e:
         print("Error: {}".format(e))
     else:
@@ -156,4 +132,3 @@ if __name__ == '__main__':
         print('\n'.join('%-8s : %s' % (k,v)
             for k,v in mail.__dict__.items()
         ))
-
