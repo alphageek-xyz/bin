@@ -20,7 +20,9 @@ if __name__ == '__main__':
             'data': '\n'.join(i.decode() for i in p.communicate())
         })
 
-    if not all(not i['code'] for i in statuses):
+    has_error = not all(not i['code'] for i in statuses)
+
+    if has_error or '--force' in sys.argv:
         heading = 'A required service is not running. Fix it NOW!'
         with open('/var/local/agcs/conf/secrets.json') as f:
             secrets = json.load(f)
@@ -30,7 +32,7 @@ if __name__ == '__main__':
                 server='smtp.zoho.com',
                 subject='Server Problem',
                 to=['root@alphageek.xyz'],
-                sender=secrets['email_host_user'],
+                sender='no-reply@alphageek.xyz',
                 user=secrets['email_host_user'],
                 passwd=secrets['email_host_pass'],
                 content=heading,
