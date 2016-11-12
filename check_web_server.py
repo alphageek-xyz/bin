@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     if has_error or '--force' in sys.argv:
         heading = 'A required service is not running. Fix it NOW!'
-        with open('/var/local/agcs/conf/secrets.json') as f:
+        with open('/mnt/AGCSWWW/data/conf/secrets.json') as f:
             secrets = json.load(f)
         try:
             from mailer import Mailer
