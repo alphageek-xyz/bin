@@ -27,16 +27,14 @@ restore() {
     declare fname="$1"
     (    [[ $(file -b "$fname" | cut -d' ' -f1) = gzip ]] &&
           gunzip -c "$fname" || cat "$fname"
-    ) |    sudo -iu postgres pg_restore -cCd postgres
-    echo 'GRANT ALL PRIVILEGES ON DATABASE agcs_db TO django;' | \
-        sudo -iu postgres psql
+    ) |    sudo -iu postgres psql
 }
 
 backup() {
     test $# -eq 2 || return 1
     declare bkdir="$1" fname="$2"
     test -d "$bkdir" || mkdir -p "$bkdir"
-    sudo -iu postgres /usr/bin/pg_dump -Fc agcs_db | gzip > "${bkdir}/${fname}.gz"
+    sudo -iu postgres /usr/bin/pg_dumpall -c --if-exists | gzip > "${bkdir}/${fname}.gz"
 }
 
 trap usage ERR
@@ -83,4 +81,3 @@ else
     }
     eval "$cmd"
 fi
-
