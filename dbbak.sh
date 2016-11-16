@@ -9,17 +9,13 @@ test `whoami` = root || {
 }
 
 err() {
-    test -n "$@" && echo $@
-    exit 1
-}
-
-usage() {
     cat <<EOF
 Usage: ${BASH_SOURCE##*/} [-h|OPTIONS]
        ${BASH_SOURCE##*/} [-nb] [-f <FNAME>] [-d <DIRNAME>]
        ${BASH_SOURCE##*/} [-F] -rf <FPATH>
 EOF
-    err $@
+    echo ${@:--n} >&2
+    exit 1
 }
 
 restore() {
@@ -37,11 +33,11 @@ backup() {
     sudo -iu postgres /usr/bin/pg_dumpall -c --if-exists | gzip > "${bkdir}/${fname}.gz"
 }
 
-trap usage ERR
+trap err ERR
 
 while getopts :hbrFnvd:f: opt; do
     case "$opt" in
-        h) usage ;;
+        h) err ;;
         b) ${restore:=false} || backup=true ;;
         r) ${backup:=false}  || restore=true ;;
         d) bkdir="$OPTARG" ;;
