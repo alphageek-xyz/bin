@@ -63,61 +63,66 @@ if __name__ == '__main__':
         description='Send a simple email',
     )
     parser.add_argument('-v', '--verbose',
-        help='Be verbose',
+        help='be verbose',
         action='store_true',
     )
     parser.add_argument('-n', '--dry-run',
-        help='Run in test mode',
+        help='don\'t actually do anything',
         action='store_true',
     )
     parser.add_argument('-H', '--html',
-        help='Attach html alternative',
+        help='attach html alternative',
         metavar='HTML'
     )
-    parser.add_argument('-s', '--subject',
-        help='Subject of the email',
-        metavar='SUBJECT',
+    parser.add_argument('-s', '--subj',
+        help='subject of the email',
+        metavar='SUBJ',
         default='System message from %s' % get_host_name()
     )
-    parser.add_argument('-S', '--server',
+    parser.add_argument('-S', '--host',
         help='SMTP server to use',
         required=True,
         metavar='HOST',
     )
     parser.add_argument('-t', '--to',
-        help="Recipient's email address",
+        help="recipient's email address",
         action='append',
         required=True,
-        metavar='EMAIL',
+        metavar='ADDR',
     )
     parser.add_argument('-u', '--user',
-        help='Username for the SMTP server',
+        help='username for the SMTP server',
         required=True,
         metavar='NAME',
     )
-    parser.add_argument('-p', '--password',
-        help='Password for the SMTP server user',
+    parser.add_argument('-p', '--pwd',
+        help='password for the SMTP server user',
         required=True,
-        metavar='PASS',
+        metavar='WORD',
     )
     parser.add_argument('message',
-        help='The message(s) to send',
+        help='the message(s) to send',
         metavar='message',
         nargs='+',
     )
 
     args = parser.parse_args()
 
+    content=' '.join(args.message)
+
+    if len(args.message) == 1 and args.message[0] == '-':
+        content = sys.stdin.read()
+
     try:
         mail = Mailer(
-            server=args.server,
+            server=args.host,
             user=args.user,
-            passwd=args.password,
+            passwd=args.pwd,
             to=args.to,
-            content=' '.join(args.message),
+            content=content,
             html=args.html,
             sender=args.user,
-            subject=args.subject or None
+            subject=args.subj or None
         )
         if args.dry_run:
             print('DRY RUN: (Sending skipped)')
