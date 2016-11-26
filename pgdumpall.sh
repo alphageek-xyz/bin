@@ -10,8 +10,8 @@ err () {
 
 exec >&2
 trap err ERR
-
 set -e
+
 test `whoami` = root || err 'Must be root'
 FNAME="${1:-agcs_db_all.sql}"
 sudo -iu postgres /usr/bin/pg_dumpall -c --if-exists >"$FNAME"
