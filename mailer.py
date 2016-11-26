@@ -107,8 +107,7 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-
-    content=' '.join(args.message)
+    content = ' '.join(args.message)
 
     if len(args.message) == 1 and args.message[0] == '-':
         content = sys.stdin.read()
