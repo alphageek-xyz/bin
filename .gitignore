@@ -61,3 +61,4 @@ target/
 .ipynb_checkpoints
 *.bak
 *.swp
+agcs_db_all.sql.gz
